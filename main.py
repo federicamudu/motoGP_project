@@ -58,3 +58,35 @@ def read_standings():
         ]
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+    
+@app.get("/risultati_gara/{id_evento}")
+def read_risultati_gara(id_evento: str):
+    """
+    Trova automaticamente l'ID della sessione 'Gara' (RAC) partendo dall'ID dell'evento
+    e restituisce i risultati completi.
+    """
+    try:
+        # 1. Chiediamo al client tutte le sessioni di questo weekend
+        sessioni = client.get_sessions(id_evento, CATEGORY_GP)
+        
+        # 2. Cerchiamo quella di tipo "RAC" (Race/Gara)
+        gara = next((s for s in sessioni if s.get('type') == 'RAC'), None)
+        
+        # Se la gara non c'è (es. weekend annullato) o non è finita
+        if not gara:
+            return []
+        
+        # 3. Ora che abbiamo l'ID della gara, chiediamo la classifica esatta
+        data = client.get_classifications(gara['id'])
+        classif = data.get('classification', [])
+        
+        return [
+            {
+                "pos": p.get('position', 'NC'), # NC = Non Classificato/Ritirato
+                "nome": p['rider']['full_name'],
+                "tempo": p.get('time', 'N/D'),
+                "punti": p.get('points', 0)
+            } for p in classif
+        ]
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
