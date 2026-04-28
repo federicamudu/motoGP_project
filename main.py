@@ -10,7 +10,7 @@ app.add_middleware(
         "http://localhost:5173",
     ],
     allow_credentials=True,
-    allow_methods=["*"], # Puoi limitare anche questi a ["GET"] volendo essere paranoica!
+    allow_methods=["*"], 
     allow_headers=["*"],
 )
 
