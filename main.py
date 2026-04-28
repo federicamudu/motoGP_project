@@ -96,22 +96,31 @@ def read_risultati_gara(id_evento: str):
 @app.get("/api/pilota/{rider_id}")
 def read_pilota(rider_id: str):
     try:
-        rider = client.get_rider(rider_id)
+        teams_data = client.get_all_riders_data()
         
-        if not rider:
-            raise HTTPException(status_code=404, detail="Pilota non trovato")
+        target_rider = None
+        for team in teams_data:
+            for r in team.get('riders', []):
+                if r.get('id') == rider_id:
+                    target_rider = r
+                    break
+            if target_rider: break
+
+        if not target_rider:
+            raise HTTPException(status_code=404, detail="Pilota non trovato nel database team")
+
+        career = target_rider.get('current_career_step', {})
         
         return {
-            "id": rider.get('id'),
-            "nome": rider.get('full_name', 'N/D'),
-            "numero": rider.get('number', '??'),
-            "nazione": rider.get('country', {}).get('name', 'N/D') if rider.get('country') else 'N/D',
-            "nascita": rider.get('birth_date', 'N/D'),
-            "citta": rider.get('birth_city', 'N/D'),
-            "altezza": f"{rider.get('height')} cm" if rider.get('height') else 'N/D',
-            "peso": f"{rider.get('weight')} kg" if rider.get('weight') else 'N/D',
-            "foto": rider.get('image') if rider.get('image') else 'N/D'
+            "id": target_rider.get('id'),
+            "nome": f"{target_rider.get('name')} {target_rider.get('surname')}",
+            "numero": career.get('number', '??'),
+            "nazione": target_rider.get('country', {}).get('name', 'N/D'),
+            "nascita": target_rider.get('birth_date', 'N/D'),
+            "citta": target_rider.get('birth_city', 'N/D'),
+            "foto": career.get('pictures', {}).get('profile', {}).get('main'), # Foto ufficiale!
+            "team": career.get('sponsored_team', 'N/D'),
+            "ruolo": career.get('type', 'N/D') # Es. 'Official' o 'Wildcard'
         }
     except Exception as e:
-        print(f"Errore nel recupero pilota {rider_id}: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
