@@ -59,7 +59,7 @@ def read_standings():
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     
-@app.get("/risultati_gara/{id_evento}")
+@app.get("/api/risultati_gara/{id_evento}")
 def read_risultati_gara(id_evento: str):
     """
     Trova automaticamente l'ID della sessione 'Gara' (RAC) partendo dall'ID dell'evento
