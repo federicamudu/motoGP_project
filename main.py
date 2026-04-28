@@ -107,7 +107,6 @@ def read_pilota(rider_name: str):
             raise ValueError("L'API non ha restituito una lista")
 
         target_rider = None
-        # Puliamo il nome che ci arriva da React (tutto minuscolo per evitare errori)
         nome_cercato = rider_name.strip().lower()
 
         for team in teams_data:
@@ -115,10 +114,8 @@ def read_pilota(rider_name: str):
             for r in team.get('riders', []):
                 if not isinstance(r, dict): continue
                 
-                # Uniamo nome e cognome del JSON della MotoGP
                 nome_ufficiale = f"{r.get('name', '')} {r.get('surname', '')}".strip().lower()
                 
-                # BINGO! Li confrontiamo:
                 if nome_ufficiale == nome_cercato:
                     target_rider = r
                     break
