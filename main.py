@@ -1,7 +1,19 @@
 from fastapi import FastAPI, HTTPException
 from motogp_client import MotoGPClient
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(title="MotoGP API")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:5173",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"], # Puoi limitare anche questi a ["GET"] volendo essere paranoica!
+    allow_headers=["*"],
+)
+
 client = MotoGPClient()
 
 SEASON_UUID = "e88b4e43-2209-47aa-8e83-0e0b1cedde6e"
