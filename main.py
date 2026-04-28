@@ -96,44 +96,47 @@ def read_risultati_gara(id_evento: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     
-@app.get("/api/pilota/{rider_id}")
-def read_pilota(rider_id: str):
-    # Forzo i valori qui dentro così non c'è rischio che non li trovi
+@app.get("/api/pilota/{rider_name}")
+def read_pilota(rider_name: str):
     CAT_TEAMS = "737ab122-76e1-4081-bedb-334caaa18c70"
     ANNO = 2026
 
     try:
         teams_data = client.get_all_riders_data(CAT_TEAMS, ANNO)
-        
         if not isinstance(teams_data, list):
-            raise ValueError("L'API non ha restituito una lista valida")
+            raise ValueError("L'API non ha restituito una lista")
 
         target_rider = None
+        # Puliamo il nome che ci arriva da React (tutto minuscolo per evitare errori)
+        nome_cercato = rider_name.strip().lower()
+
         for team in teams_data:
             if not isinstance(team, dict): continue
             for r in team.get('riders', []):
                 if not isinstance(r, dict): continue
-                if r.get('id') == rider_id:
+                
+                # Uniamo nome e cognome del JSON della MotoGP
+                nome_ufficiale = f"{r.get('name', '')} {r.get('surname', '')}".strip().lower()
+                
+                # BINGO! Li confrontiamo:
+                if nome_ufficiale == nome_cercato:
                     target_rider = r
                     break
             if target_rider: break
 
         if not target_rider:
             return {
-                "id": rider_id, "nome": "Dati Pilota Non Trovati", "numero": "??",
+                "id": "??", "nome": rider_name, "numero": "??",
                 "nazione": "N/D", "nascita": "N/D", "citta": "N/D",
                 "foto": None, "team": "N/D", "ruolo": "Sconosciuto"
             }
 
         career = target_rider.get('current_career_step')
         if not isinstance(career, dict): career = {}
-        
         pictures = career.get('pictures')
         if not isinstance(pictures, dict): pictures = {}
-        
         profile = pictures.get('profile')
         if not isinstance(profile, dict): profile = {}
-        
         country = target_rider.get('country')
         if not isinstance(country, dict): country = {}
 
@@ -150,5 +153,5 @@ def read_pilota(rider_id: str):
         }
     except Exception as e:
         import traceback
-        print(f"ERRORE BRUTALE: {traceback.format_exc()}")
+        print(f"ERRORE: {traceback.format_exc()}")
         raise HTTPException(status_code=500, detail=str(e))
