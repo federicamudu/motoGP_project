@@ -50,6 +50,7 @@ def read_standings():
         riders = data.get('classification', {}).get('rider', [])
         return [
             {
+                "id": r['rider']['id'],
                 "pos": r['position'],
                 "nome": r['rider']['full_name'],
                 "punti": r.get('points', 0),
@@ -57,6 +58,7 @@ def read_standings():
             } for r in riders
         ]
     except Exception as e:
+        print(f"Errore tecnico: {e}")
         raise HTTPException(status_code=500, detail=str(e))
     
 @app.get("/api/risultati_gara/{id_evento}")
@@ -89,4 +91,26 @@ def read_risultati_gara(id_evento: str):
             } for p in classif
         ]
     except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
+@app.get("/api/pilota/{rider_id}")
+def read_pilota(rider_id: str):
+    try:
+        rider = client.get_rider(rider_id)
+        
+        print(f"Dati ricevuti per il pilota: {rider}")
+        
+        return {
+            "id": rider.get('id'),
+            "nome": rider.get('full_name', 'Nome non disponibile'),
+            "numero": rider.get('number', '??'),
+            "nazione": rider.get('country', {}).get('name', 'N/D') if rider.get('country') else 'N/D',
+            "nascita": rider.get('birth_date', 'N/D'),
+            "citta": rider.get('birth_city', 'N/D'),
+            "altezza": rider.get('height', 'N/D'),
+            "peso": rider.get('weight', 'N/D'),
+            "foto": rider.get('image') 
+        }
+    except Exception as e:
+        print(f"Errore nel recupero pilota {rider_id}: {e}")
         raise HTTPException(status_code=500, detail=str(e))
