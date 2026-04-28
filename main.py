@@ -19,6 +19,9 @@ client = MotoGPClient()
 SEASON_UUID = "e88b4e43-2209-47aa-8e83-0e0b1cedde6e"
 CATEGORY_GP = "e8c110ad-64aa-4e8e-8a86-f2f152f6a942"
 
+CATEGORY_TEAMS_GP = "737ab122-76e1-4081-bedb-334caaa18c70" # UUID per V1 (Team e Piloti)
+SEASON_YEAR = 2026
+
 # Aggiungiamo la rotta base per non far arrabbiare Vercel sulla Home!
 @app.get("/")
 def read_root():
@@ -96,7 +99,7 @@ def read_risultati_gara(id_evento: str):
 @app.get("/api/pilota/{rider_id}")
 def read_pilota(rider_id: str):
     try:
-        teams_data = client.get_all_riders_data(CATEGORY_GP)
+        teams_data = client.get_all_riders_data(CATEGORY_TEAMS_GP, SEASON_YEAR)
         
         target_rider = None
         for team in teams_data:
@@ -120,9 +123,9 @@ def read_pilota(rider_id: str):
             "nazione": target_rider.get('country', {}).get('name', 'N/D') if target_rider.get('country') else 'N/D',
             "nascita": target_rider.get('birth_date', 'N/D'),
             "citta": target_rider.get('birth_city', 'N/D'),
-            "foto": profile.get('main'), 
+            "foto": profile.get('main'),
             "team": career.get('sponsored_team', 'N/D'),
-            "ruolo": career.get('type', 'N/D') 
+            "ruolo": career.get('type', 'N/D')
         }
     except Exception as e:
         print(f"Errore critico in read_pilota: {e}")

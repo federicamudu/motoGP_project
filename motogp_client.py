@@ -45,7 +45,7 @@ class MotoGPClient:
         url = f"{self.base_url_v2}/results/classifications?session={session_uuid}"
         return self._fetch(url)
     
-    def get_all_riders_data(self, category_uuid):
+    def get_all_riders_data(self, category_uuid, season_year):
         """Scarica i dettagli dei piloti passando tramite l'endpoint dei team"""
-        url = f"{self.base_url_v1}/teams?categoryUuid={category_uuid}&seasonYear=2026"
+        url = f"{self.base_url_v1}/teams?categoryUuid={category_uuid}&seasonYear={season_year}"
         return self._fetch(url)
