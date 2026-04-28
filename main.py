@@ -98,29 +98,50 @@ def read_risultati_gara(id_evento: str):
     
 @app.get("/api/pilota/{rider_id}")
 def read_pilota(rider_id: str):
+    # Forzo i valori qui dentro così non c'è rischio che non li trovi
+    CAT_TEAMS = "737ab122-76e1-4081-bedb-334caaa18c70"
+    ANNO = 2026
+
     try:
-        teams_data = client.get_all_riders_data(CATEGORY_TEAMS_GP, SEASON_YEAR)
+        teams_data = client.get_all_riders_data(CAT_TEAMS, ANNO)
         
+        if not isinstance(teams_data, list):
+            raise ValueError("L'API non ha restituito una lista valida")
+
         target_rider = None
         for team in teams_data:
+            if not isinstance(team, dict): continue
             for r in team.get('riders', []):
+                if not isinstance(r, dict): continue
                 if r.get('id') == rider_id:
                     target_rider = r
                     break
             if target_rider: break
 
         if not target_rider:
-            raise HTTPException(status_code=404, detail="Pilota non trovato nel database team")
+            return {
+                "id": rider_id, "nome": "Dati Pilota Non Trovati", "numero": "??",
+                "nazione": "N/D", "nascita": "N/D", "citta": "N/D",
+                "foto": None, "team": "N/D", "ruolo": "Sconosciuto"
+            }
 
-        career = target_rider.get('current_career_step') or {}
-        pictures = career.get('pictures') or {}
-        profile = pictures.get('profile') or {}
+        career = target_rider.get('current_career_step')
+        if not isinstance(career, dict): career = {}
         
+        pictures = career.get('pictures')
+        if not isinstance(pictures, dict): pictures = {}
+        
+        profile = pictures.get('profile')
+        if not isinstance(profile, dict): profile = {}
+        
+        country = target_rider.get('country')
+        if not isinstance(country, dict): country = {}
+
         return {
             "id": target_rider.get('id'),
-            "nome": f"{target_rider.get('name')} {target_rider.get('surname')}",
+            "nome": f"{target_rider.get('name', '')} {target_rider.get('surname', '')}".strip(),
             "numero": career.get('number', '??'),
-            "nazione": target_rider.get('country', {}).get('name', 'N/D') if target_rider.get('country') else 'N/D',
+            "nazione": country.get('name', 'N/D'),
             "nascita": target_rider.get('birth_date', 'N/D'),
             "citta": target_rider.get('birth_city', 'N/D'),
             "foto": profile.get('main'),
@@ -128,5 +149,6 @@ def read_pilota(rider_id: str):
             "ruolo": career.get('type', 'N/D')
         }
     except Exception as e:
-        print(f"Errore critico in read_pilota: {e}")
+        import traceback
+        print(f"ERRORE BRUTALE: {traceback.format_exc()}")
         raise HTTPException(status_code=500, detail=str(e))
