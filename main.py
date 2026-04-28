@@ -96,7 +96,7 @@ def read_risultati_gara(id_evento: str):
 @app.get("/api/pilota/{rider_id}")
 def read_pilota(rider_id: str):
     try:
-        teams_data = client.get_all_riders_data()
+        teams_data = client.get_all_riders_data(CATEGORY_GP)
         
         target_rider = None
         for team in teams_data:
@@ -109,18 +109,21 @@ def read_pilota(rider_id: str):
         if not target_rider:
             raise HTTPException(status_code=404, detail="Pilota non trovato nel database team")
 
-        career = target_rider.get('current_career_step', {})
+        career = target_rider.get('current_career_step') or {}
+        pictures = career.get('pictures') or {}
+        profile = pictures.get('profile') or {}
         
         return {
             "id": target_rider.get('id'),
             "nome": f"{target_rider.get('name')} {target_rider.get('surname')}",
             "numero": career.get('number', '??'),
-            "nazione": target_rider.get('country', {}).get('name', 'N/D'),
+            "nazione": target_rider.get('country', {}).get('name', 'N/D') if target_rider.get('country') else 'N/D',
             "nascita": target_rider.get('birth_date', 'N/D'),
             "citta": target_rider.get('birth_city', 'N/D'),
-            "foto": career.get('pictures', {}).get('profile', {}).get('main'), # Foto ufficiale!
+            "foto": profile.get('main'), 
             "team": career.get('sponsored_team', 'N/D'),
-            "ruolo": career.get('type', 'N/D') # Es. 'Official' o 'Wildcard'
+            "ruolo": career.get('type', 'N/D') 
         }
     except Exception as e:
+        print(f"Errore critico in read_pilota: {e}")
         raise HTTPException(status_code=500, detail=str(e))
