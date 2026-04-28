@@ -1,0 +1,12 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.env
+
+# Editor
+.vscode/
+.idea/
+
+# Vercel
+.vercel/
