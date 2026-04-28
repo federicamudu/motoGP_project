@@ -98,19 +98,20 @@ def read_pilota(rider_id: str):
     try:
         rider = client.get_rider(rider_id)
         
-        print(f"Dati ricevuti per il pilota: {rider}")
+        if not rider:
+            raise HTTPException(status_code=404, detail="Pilota non trovato")
         
         return {
             "id": rider.get('id'),
-            "nome": rider.get('full_name', 'Nome non disponibile'),
+            "nome": rider.get('full_name', 'N/D'),
             "numero": rider.get('number', '??'),
             "nazione": rider.get('country', {}).get('name', 'N/D') if rider.get('country') else 'N/D',
             "nascita": rider.get('birth_date', 'N/D'),
             "citta": rider.get('birth_city', 'N/D'),
-            "altezza": rider.get('height', 'N/D'),
-            "peso": rider.get('weight', 'N/D'),
-            "foto": rider.get('image') 
+            "altezza": f"{rider.get('height')} cm" if rider.get('height') else 'N/D',
+            "peso": f"{rider.get('weight')} kg" if rider.get('weight') else 'N/D',
+            "foto": rider.get('image') if rider.get('image') else 'N/D'
         }
     except Exception as e:
-        print(f"Errore nel recupero pilota {rider_id}: {e}")
+        print(f"Errore nel recupero pilota {rider_id}: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))

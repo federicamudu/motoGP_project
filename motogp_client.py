@@ -44,3 +44,7 @@ class MotoGPClient:
     def get_classifications(self, session_uuid):
         url = f"{self.base_url_v2}/results/classifications?session={session_uuid}"
         return self._fetch(url)
+    
+    def get_rider(self, rider_uuid):
+        url = f"{self.base_url_v1}/riders/{rider_uuid}"
+        return self._fetch(url)
